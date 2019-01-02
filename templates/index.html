@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>文件上传合并</title>
+
+<link rel="stylesheet" href="/static/src/css/layui.css">
+
+<style>
+body{padding: 50px 100px;}
+.layui-upload-img{width: 92px; height: 92px; margin: 0 10px 10px 0;}
+hr{margin: 30px 0;}
+</style>
+</head>
+<body>
+
+
+<hr>
+
+<div class="layui-upload">
+  <button type="button" class="layui-btn layui-btn-normal" id="testList">请选择csv文件</button>
+  <div class="layui-upload-list">
+    <table class="layui-table">
+      <thead>
+        <th>文件名</th>
+        <th>大小</th>
+        <th>状态</th>
+        <th>操作</th>
+      </thead>
+      <tbody id="demoList"></tbody>
+    </table>
+  </div>
+  <button type="button" class="layui-btn" id="testListAction">开始上传</button>
+
+
+
+
+</div>
+
+<hr>
+
+<form class="layui-form" action="">
+  <div class="layui-form-item">
+    <div class="layui-input-block">
+      <button class="layui-btn layui-btn-warm" lay-submit lay-filter="formDemo">一键合并所有文件并下载</button>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <label class="layui-form-label">邮箱</label>
+    <div class="layui-input-inline">
+      <input type="text" name="email" placeholder="请输入邮箱(可选)" autocomplete="off" class="layui-input">
+    </div>
+  </div>
+
+</form>
+
+
+
+
+<script src="/static/src/layui.js"></script>
+
+
+<script>
+layui.use(['upload','form'], function(){
+  var $ = layui.jquery
+      , form = layui.form
+      , upload = layui.upload;
+
+
+  //监听提交
+  form.on('submit(formDemo)', function(data){
+      // layer.msg(JSON.stringify(data.field));
+    var index = layer.load(1, {
+      shade: [0.1,'#fff'] //0.1透明度的白色背景
+    });
+
+    $.ajax({
+    url:'/merge',
+    data:data.field,
+    type:"POST",
+    dataType:"json",
+    success:function(msg){
+
+      layer.close(index);
+      if (msg.code) {
+          layer.msg(msg.msg,{icon:1});
+          location.href = '/merge'
+      }else {
+          layer.msg(msg.msg,{icon:2});
+      }
+    },
+    error:function(error){
+      layer.msg("请求失败,请稍后再试",{icon: 2});
+    }
+    });
+
+    return false;
+  });
+  
+  //演示多文件列表
+  var demoListView = $('#demoList');
+  var uploadListIns = upload.render({
+    elem: '#testList'
+    ,url: '/'
+    ,accept: 'file'
+    ,multiple: true
+      ,exts: 'csv'
+    // ,number: 3
+    ,auto: false
+    ,bindAction: '#testListAction'
+    ,choose: function(obj){   
+      var files = this.files = obj.pushFile(); //将每次选择的文件追加到文件队列
+
+      //读取本地文件
+      obj.preview(function(index, file, result){
+        var tr = $(['<tr id="upload-'+ index +'">'
+          ,'<td>'+ file.name +'</td>'
+          ,'<td>'+ (file.size/1014).toFixed(1) +'kb</td>'
+          ,'<td>等待上传</td>'
+          ,'<td>'
+            ,'<button class="layui-btn layui-btn-mini demo-reload layui-hide">重传</button>'
+            ,'<button class="layui-btn layui-btn-mini layui-btn-danger demo-delete">删除</button>'
+          ,'</td>'
+        ,'</tr>'].join(''));
+        
+        //单个重传
+        tr.find('.demo-reload').on('click', function(){
+          obj.upload(index, file);
+        });
+        
+        //删除
+        tr.find('.demo-delete').on('click', function(){
+          delete files[index]; //删除对应的文件
+          tr.remove();
+          uploadListIns.config.elem.next()[0].value = ''; //清空 input file 值，以免删除后出现同名文件不可选
+        });
+        
+        demoListView.append(tr);
+      });
+    }
+    ,done: function(res, index, upload){
+      if(res.code == 0){ //上传成功
+        var tr = demoListView.find('tr#upload-'+ index)
+        ,tds = tr.children();
+        tds.eq(2).html('<span style="color: #5FB878;">上传成功</span>');
+        tds.eq(3).html(''); //清空操作
+        delete this.files[index]; //删除文件队列已经上传成功的文件
+        return;
+      }
+      this.error(index, upload);
+    }
+    ,allDone: function(obj){
+      console.log(obj)
+    }
+    ,error: function(index, upload){
+      var tr = demoListView.find('tr#upload-'+ index)
+      ,tds = tr.children();
+      tds.eq(2).html('<span style="color: #FF5722;">上传失败</span>');
+      tds.eq(3).find('.demo-reload').removeClass('layui-hide'); //显示重传
+    }
+  });
+
+});
+
+
+
+</script>
+</body>
+</html>
