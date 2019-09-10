@@ -1,6 +1,6 @@
 # 一键合并csv文件
 
-使用请点击 [https://kangbing.tw/](https://kangbing.tw/)
+使用请点击 [https://merge.kangbingbing.com/](https://merge.kangbingbing.com/)
 
 ### 使用方法
 

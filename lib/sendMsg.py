@@ -13,14 +13,6 @@ mail_user="kangbing"
 mail_postfix="ruanrongkeji.com"
 #--------------------------------邮箱配置------------------------------
 
-#--------------------------------短信配置------------------------------
-accountSid= '8a48b5515388ec150153c6682c8c6005'
-accountToken= '5606ebc2b7be4a729dde8fe2ad0b4bf1'
-appId='8aaf0708560730a501560b263c340299'
-serverIP='app.cloopen.com'
-serverPort='8883'
-softVersion='2013-12-26'
-#--------------------------------短信配置------------------------------
 
 
 class Mail:
@@ -41,7 +33,7 @@ class Mail:
         try:
             server = smtplib.SMTP()
             server.connect(mail_host)      #连接服务器
-            server.login("kangbing@ruanrongkeji.com","Kb123!@#")
+            server.login("kangbing@ruanrongkeji.com","Kb123456")
             server.sendmail(me, to_list, msg.as_string())
             server.close()
             return True
@@ -81,7 +73,7 @@ class Mail:
         try:
             server = smtplib.SMTP()
             server.connect(mail_host)      #连接服务器
-            server.login("kangbing@ruanrongkeji.com","Kb123!@#")
+            server.login("kangbing@ruanrongkeji.com","Kb123456")
             server.sendmail(me, to_list, msg.as_string())
             server.close()
             return True
@@ -89,25 +81,3 @@ class Mail:
             print str(e)
             return False
 
-
-class Sms:
-
-    @classmethod
-    def sendTemplateSMS(cls,to,datas,tempId):
-        '''
-        :param to:      '18911606898' 多个收信人,隔开
-        :param datas:   []  多个占位符, 里面为字符串
-        :param tempId:  模板id
-        :return:        无
-        '''
-        rest = REST(serverIP,serverPort,softVersion)
-        rest.setAccount(accountSid,accountToken)
-        rest.setAppId(appId)
-        result = rest.sendTemplateSMS(to,datas,tempId)
-
-        for k,v in result.iteritems():
-            if k=='templateSMS' :
-                    for k,s in v.iteritems():
-                        print '%s:%s' % (k, s)
-            else:
-                print '%s:%s' % (k, v)
